@@ -1,0 +1,37 @@
+{
+	"name": "greenlock-challenge-cloudflare",
+	"version": "0.0.0",
+	"description": "WIP Greenlock DNS Challenge for Cloudflare",
+	"keywords": [
+		"acme",
+		"dns",
+		"greenlock"
+	],
+	"homepage": "https://github.com/nodecraft/greenlock-challenge-cloudflare#readme",
+	"bugs": {
+		"url": "https://github.com/nodecraft/greenlock-challenge-cloudflare/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/nodecraft/greenlock-challenge-cloudflare.git"
+	},
+	"license": "MIT",
+	"author": "Nodecraft, Inc.",
+	"main": "index.js",
+	"scripts": {
+		"lint": "eslint .",
+		"test": "npm run lint"
+	},
+	"dependencies": {
+		"cloudflare": "^2.4.1"
+	},
+	"devDependencies": {
+		"eslint": "^5.16.0",
+		"eslint-config-nodecraft": "^1.4.1",
+		"eslint-plugin-json": "^1.4.0",
+		"eslint-plugin-node": "^9.0.1"
+	},
+	"engines": {
+		"node": ">=10"
+	}
+}
