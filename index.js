@@ -31,11 +31,7 @@ class Challenge{
 				return callback(`Could not find a zone for '${args.challenge.dnsHost}'.`);
 			}
 			const records = await this.getTxtRecords(zone, args.challenge.dnsHost);
-			let content = args.challenge.keyAuthorization;
-			// is this the correct thing to be doing?
-			if(args.challenge.dnsHost.startsWith('_greenlock-dryrun')){
-				content = args.challenge.dnsAuthorization;
-			}
+			let content = args.challenge.dnsAuthorization;
 			if(records.length === 0){
 				// add record
 				console.log('add record', {
@@ -68,7 +64,7 @@ class Challenge{
 			if(this.options.verifyPropagation){
 				await Challenge.verifyPropagation(args.challenge, this.options.waitFor, this.options.retries);
 			}
-			return callback();
+			return callback(null, null);
 		}catch(err){
 			return callback(err);
 		}
@@ -91,9 +87,39 @@ class Challenge{
 			for(const record of records){
 				await this.client.dnsRecords.del(zone.id, record.id);
 			}
-			return callback();
+			// allow time for deletion to propagate
+			setTimeout(function(){
+				return callback(null, null);
+			}, this.options.waitFor);
 		}catch(err){
 			return callback(err);
+		}
+	}
+
+	/* implemented for testing purposes */
+	async get(args, callback){
+		console.log('get', args);
+		if(!args.challenge){
+			return callback("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
+		}
+		try{
+			const zone = await this.getZoneForDomain(args.challenge.identifier.value);
+			if(!zone){
+				return callback(`Could not find a zone for '${args.challenge.identifier.value}'.`);
+			}
+			await Challenge.verifyPropagation({
+				dnsHost: args.challenge.identifier.value,
+				dnsAuthorization: args.challenge.dnsAuthorization
+			}, this.options.waitFor, 3);
+
+			// record confirmed to exist
+			return callback(null, {
+				dnsAuthorization: args.challenge.dnsAuthorization
+			});
+
+		}catch(err){
+			// could not get record
+			return callback(null, null);
 		}
 	}
 
@@ -103,11 +129,7 @@ class Challenge{
 				const records = await resolveTxt(challenge.dnsHost);
 				console.log(`Successfully propagated challenge for ${challenge.dnsHost}`);
 				console.log(records);
-				let verifyCheck = challenge.keyAuthorization;
-				// is this the correct thing to be doing?
-				if(challenge.dnsHost.startsWith('_greenlock-dryrun')){
-					verifyCheck = challenge.dnsAuthorization;
-				}
+				let verifyCheck = challenge.dnsAuthorization;
 				if(!records.includes(verifyCheck)){
 					throw new Error(`Could not verify DNS for ${challenge.dnsHost}`);
 				}
