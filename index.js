@@ -23,7 +23,7 @@ class Challenge{
 	async set(args, callback){
 		console.log('set', args.challenge);
 		if(!args.challenge){
-			return callback("You must be using Greenlock v2.7+ to use greenlock-challenge-cloudflare v3+");
+			return callback("You must be using Greenlock v2.7+ to use greenlock-challenge-cloudflare");
 		}
 		try{
 			const zone = await this.getZoneForDomain(args.challenge.dnsHost);
