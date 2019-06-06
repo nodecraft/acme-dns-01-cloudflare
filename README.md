@@ -27,7 +27,7 @@ const store = greenlockStore.create({
 
 const DNSChallenge = new LEChallengeCloudflare({
 	email: 'example@example.com',
-	key: 'api key',
+	key: 'xxxxxxx',
 	verifyPropagation: true
 });
 
@@ -42,8 +42,8 @@ const greenlock = Greenlock.create({
 });
 
 greenlock.register({
-	domains: ['nodecraft.com'],
-	email: 'admin@nodecraft.com',
+	domains: ['example.com'],
+	email: 'example@example.com',
 	agreeTos: true,
 	rsaKeySize: 2048,
 	debug: true
