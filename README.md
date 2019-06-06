@@ -1,9 +1,9 @@
-# greenlock-challenge-cloudflare
+# acme-dns-01-cloudflare
 Greenlock DNS Challenge for Cloudflare
-`npm install greenlock-challenge-cloudflare --save`
+`npm install acme-dns-01-cloudflare --save`
 
-[![npm version](https://badge.fury.io/js/greenlock-challenge-cloudflare.svg)](https://badge.fury.io/js/greenlock-challenge-cloudflare)
-[![dependencies Status](https://david-dm.org/nodecraft/greenlock-challenge-cloudflare/status.svg)](https://david-dm.org/nodecraft/greenlock-challenge-cloudflare)
+[![npm version](https://badge.fury.io/js/acme-dns-01-cloudflare.svg)](https://badge.fury.io/js/acme-dns-01-cloudflare)
+[![dependencies Status](https://david-dm.org/nodecraft/acme-dns-01-cloudflare/status.svg)](https://david-dm.org/nodecraft/acme-dns-01-cloudflare)
 
 
 Note: This module is still a WIP and not yet functional.
@@ -12,7 +12,7 @@ Note: This module is still a WIP and not yet functional.
 ```js
 const Greenlock = require('greenlock'),
 	greenlockStore = require('greenlock-store-fs'),
-	LEChallengeCloudflare = require('greenlock-challenge-cloudflare');
+	LEChallengeCloudflare = require('acme-dns-01-cloudflare');
 
 const store = greenlockStore.create({
 	configDir: './store/certs',

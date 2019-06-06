@@ -23,7 +23,7 @@ class Challenge{
 	async set(args, callback){
 		console.log('set', args.challenge);
 		if(!args.challenge){
-			return callback("You must be using Greenlock v2.7+ to use greenlock-challenge-cloudflare");
+			return callback("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
 		}
 		try{
 			const zone = await this.getZoneForDomain(args.challenge.dnsHost);
@@ -77,7 +77,7 @@ class Challenge{
 	async remove(args, callback){
 		console.log('remove', args);
 		if(!args.challenge){
-			return callback("You must be using Greenlock v2.7+ to use greenlock-challenge-cloudflare v3+");
+			return callback("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
 		}
 		try{
 			const zone = await this.getZoneForDomain(args.challenge.dnsHost);
