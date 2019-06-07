@@ -1,11 +1,13 @@
 {
 	"name": "acme-dns-01-cloudflare",
-	"version": "0.0.2",
-	"description": "WIP ACME dns-01 Challenge for Cloudflare",
+	"version": "0.0.3",
+	"description": "ACME dns-01 Challenge for Cloudflare",
 	"keywords": [
 		"acme",
 		"dns",
-		"greenlock"
+		"dns-01",
+		"greenlock",
+		"cloudflare"
 	],
 	"homepage": "https://github.com/nodecraft/acme-dns-01-cloudflare#readme",
 	"bugs": {
@@ -26,7 +28,7 @@
 		"cloudflare": "^2.4.1"
 	},
 	"devDependencies": {
-		"acme-challenge-test": "3.0.4",
+		"acme-challenge-test": "3.1.2",
 		"eslint": "^5.16.0",
 		"eslint-config-nodecraft": "^1.6.0",
 		"eslint-plugin-json": "^1.4.0",

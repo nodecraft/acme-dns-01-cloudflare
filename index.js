@@ -21,7 +21,6 @@ class Challenge{
 	}
 
 	async set(args, callback){
-		console.log('set', args.challenge);
 		if(!args.challenge){
 			return callback("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
 		}
@@ -34,12 +33,6 @@ class Challenge{
 			let content = args.challenge.dnsAuthorization;
 			if(records.length === 0){
 				// add record
-				console.log('add record', {
-					type: 'TXT',
-					name: args.challenge.dnsHost,
-					content: content,
-					ttl: 120
-				});
 				await this.client.dnsRecords.add(zone.id, {
 					type: 'TXT',
 					name: args.challenge.dnsHost,
@@ -48,7 +41,6 @@ class Challenge{
 				});
 			}else if(records.length === 1){
 				// update existing record
-				console.log('update record');
 				await this.client.dnsRecords.edit(zone.id, records[0].id, Object.assign(
 					{},
 					records[0],
@@ -56,7 +48,6 @@ class Challenge{
 				));
 			}else{
 				// delete all but latest record
-				console.log('remove old records');
 				for(const record of records.slice(1)){
 					await this.client.dnsRecords.del(zone.id, record.id);
 				}
@@ -71,7 +62,6 @@ class Challenge{
 	}
 
 	async remove(args, callback){
-		console.log('remove', args);
 		if(!args.challenge){
 			return callback("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
 		}
@@ -98,7 +88,6 @@ class Challenge{
 
 	/* implemented for testing purposes */
 	async get(args, callback){
-		console.log('get', args);
 		if(!args.challenge){
 			return callback("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
 		}
@@ -110,7 +99,7 @@ class Challenge{
 			await Challenge.verifyPropagation({
 				dnsHost: args.challenge.identifier.value,
 				dnsAuthorization: args.challenge.dnsAuthorization
-			}, this.options.waitFor, 3);
+			});
 
 			// record confirmed to exist
 			return callback(null, {
@@ -119,16 +108,14 @@ class Challenge{
 
 		}catch(err){
 			// could not get record
-			return callback(null, null);
+			return callback(null, {});
 		}
 	}
 
-	static async verifyPropagation(challenge, waitFor = 8000, retries = 20){
+	static async verifyPropagation(challenge, waitFor = 10000, retries = 30){
 		for(let i = 0; i < retries; i++){
 			try{
 				const records = await resolveTxt(challenge.dnsHost);
-				console.log(`Successfully propagated challenge for ${challenge.dnsHost}`);
-				console.log(records);
 				let verifyCheck = challenge.dnsAuthorization;
 				if(!records.includes(verifyCheck)){
 					throw new Error(`Could not verify DNS for ${challenge.dnsHost}`);
@@ -136,7 +123,7 @@ class Challenge{
 				return;
 			}catch(err){
 				console.error(err);
-				console.log(`Waiting for ${waitFor} ms before attempting retry ${i + 1} / ${retries}.`);
+				console.log(`Waiting for ${waitFor} ms before attempting propagation verification retry ${i + 1} / ${retries}.`);
 				await delay(waitFor);
 			}
 		}

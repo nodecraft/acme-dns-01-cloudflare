@@ -1,12 +1,9 @@
 # acme-dns-01-cloudflare
-Greenlock DNS Challenge for Cloudflare
+[greenlock](https://www.npmjs.com/package/greenlock) ACME dns-01 challenge for [Cloudflare](https://www.cloudflare.com/)
 `npm install acme-dns-01-cloudflare --save`
 
 [![npm version](https://badge.fury.io/js/acme-dns-01-cloudflare.svg)](https://badge.fury.io/js/acme-dns-01-cloudflare)
 [![dependencies Status](https://david-dm.org/nodecraft/acme-dns-01-cloudflare/status.svg)](https://david-dm.org/nodecraft/acme-dns-01-cloudflare)
-
-
-Note: This module is still a WIP and not yet functional.
 
 ## Usage
 ```js

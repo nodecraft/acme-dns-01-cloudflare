@@ -12,7 +12,7 @@ if(!process.env.DOMAIN){
 const tester = require("acme-challenge-test");
 
 const type = "dns-01";
-const challenger = require("./").create({
+const challenger = require("./index.js").create({
 	email: process.env.CLOUDFLARE_EMAIL,
 	key: process.env.CLOUDFLARE_APIKEY,
 	verifyPropagation: true
