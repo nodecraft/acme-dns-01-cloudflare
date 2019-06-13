@@ -78,9 +78,11 @@ class Challenge{
 				await this.client.dnsRecords.del(zone.id, record.id);
 			}
 			// allow time for deletion to propagate
-			setTimeout(function(){
-				return callback(null, null);
-			}, this.options.waitFor);
+			await Challenge.verifyPropagation({
+				dnsHost: args.challenge.dnsHost,
+				dnsAuthorization: null
+			});
+			return callback(null, null);
 		}catch(err){
 			return callback(err);
 		}
@@ -112,12 +114,26 @@ class Challenge{
 		}
 	}
 
+	async zones(args, callback){
+		const zones = [];
+		for await(const zone of consumePages(pagination =>
+			this.client.zones.browse(pagination)
+		)){
+			zones.push(zone.name);
+		}
+		return callback(null, zones);
+	}
+
 	static async verifyPropagation(challenge, waitFor = 10000, retries = 30){
 		for(let i = 0; i < retries; i++){
 			try{
 				const records = await resolveTxt(challenge.dnsHost);
 				let verifyCheck = challenge.dnsAuthorization;
 				if(!records.includes(verifyCheck)){
+					if(verifyCheck === null){
+						// if we're explicitly looking for the record not to exist, we're good
+						return;
+					}
 					throw new Error(`Could not verify DNS for ${challenge.dnsHost}`);
 				}
 				return;
