@@ -9,7 +9,7 @@ if(!process.env.DOMAIN){
 	console.error('Missing DOMAIN');
 	process.exit(1);
 }
-const tester = require("acme-challenge-test");
+const tester = require("acme-dns-01-test");
 
 const type = "dns-01";
 const challenger = require("./index.js").create({

@@ -75,7 +75,9 @@ class Challenge{
 				return callback(`No TXT records found for ${args.challenge.dnsHost}`);
 			}
 			for(const record of records){
-				await this.client.dnsRecords.del(zone.id, record.id);
+				if(record.name === args.challenge.dnsHost && record.content === args.challenge.dnsAuthorization){
+					await this.client.dnsRecords.del(zone.id, record.id);
+				}
 			}
 			// allow time for deletion to propagate
 			await Challenge.verifyPropagation({

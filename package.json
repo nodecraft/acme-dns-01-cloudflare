@@ -28,7 +28,7 @@
 		"cloudflare": "^2.4.1"
 	},
 	"devDependencies": {
-		"acme-challenge-test": "3.2.1",
+		"acme-dns-01-test": "3.2.1",
 		"eslint": "^5.16.0",
 		"eslint-config-nodecraft": "^1.6.0",
 		"eslint-plugin-json": "^1.4.0",
