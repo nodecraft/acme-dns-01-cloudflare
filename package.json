@@ -4,11 +4,11 @@
 	"description": "ACME dns-01 Challenge for Cloudflare",
 	"keywords": [
 		"acme",
+		"cloudflare",
 		"dns",
 		"dns-01",
-		"letsencrypt",
 		"greenlock",
-		"cloudflare"
+		"letsencrypt"
 	],
 	"homepage": "https://github.com/nodecraft/acme-dns-01-cloudflare#readme",
 	"bugs": {
@@ -20,6 +20,9 @@
 	},
 	"license": "MIT",
 	"author": "Nodecraft, Inc.",
+	"files": [
+		"index.js"
+	],
 	"main": "index.js",
 	"scripts": {
 		"lint": "eslint .",

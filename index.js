@@ -104,7 +104,7 @@ class Challenge{
 					return resolve(null);
 				}
 				return resolve({
-					dnsAuthorization: foundRecord[0].content
+					dnsAuthorization: foundRecord.content
 				});
 
 			}catch(err){
