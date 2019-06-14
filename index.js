@@ -20,132 +20,141 @@ class Challenge{
 		return new Challenge(Object.assign(config, this.options));
 	}
 
-	async set(args, callback){
-		if(!args.challenge){
-			return callback("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
-		}
-		try{
-			const zone = await this.getZoneForDomain(args.challenge.dnsHost);
-			if(!zone){
-				return callback(`Could not find a zone for '${args.challenge.dnsHost}'.`);
+	async set(args){
+		return new Promise(async (resolve, reject) => {
+			if(!args.challenge){
+				return reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
 			}
-			const records = await this.getTxtRecords(zone, args.challenge.dnsHost);
-			let content = args.challenge.dnsAuthorization;
-			if(records.length === 0){
+			try{
+				const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
+				const zone = await this.getZoneForDomain(args.challenge.dnsZone);
+				if(!zone){
+					return reject(`Could not find a zone for '${fullRecordName}'.`);
+				}
 				// add record
 				await this.client.dnsRecords.add(zone.id, {
 					type: 'TXT',
-					name: args.challenge.dnsHost,
-					content: content,
+					name: fullRecordName,
+					content: args.challenge.dnsAuthorization,
 					ttl: 120
 				});
-			}else if(records.length === 1){
-				// update existing record
-				await this.client.dnsRecords.edit(zone.id, records[0].id, Object.assign(
-					{},
-					records[0],
-					{content: content, ttl: 120}
-				));
-			}else{
-				// delete all but latest record
-				for(const record of records.slice(1)){
-					await this.client.dnsRecords.del(zone.id, record.id);
+				if(this.options.verifyPropagation){
+					await Challenge.verifyPropagation(args.challenge, this.options.waitFor, this.options.retries);
 				}
+				return resolve(null);
+			}catch(err){
+				return reject(err);
 			}
-			if(this.options.verifyPropagation){
-				await Challenge.verifyPropagation(args.challenge, this.options.waitFor, this.options.retries);
-			}
-			return callback(null, null);
-		}catch(err){
-			return callback(err);
-		}
+		});
 	}
 
-	async remove(args, callback){
-		if(!args.challenge){
-			return callback("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
-		}
-		try{
-			const zone = await this.getZoneForDomain(args.challenge.dnsHost);
-			if(!zone){
-				return callback(`Could not find a zone for '${args.challenge.dnsHost}'.`);
+	async remove(args){
+		return new Promise(async (resolve, reject) => {
+			if(!args.challenge){
+				return reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
 			}
-			const records = await this.getTxtRecords(zone, args.challenge.dnsHost);
-			if(!records.length){
-				return callback(`No TXT records found for ${args.challenge.dnsHost}`);
-			}
-			for(const record of records){
-				if(record.name === args.challenge.dnsHost && record.content === args.challenge.dnsAuthorization){
-					await this.client.dnsRecords.del(zone.id, record.id);
+			try{
+				const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
+				const zone = await this.getZoneForDomain(args.challenge.dnsZone);
+				if(!zone){
+					return reject(`Could not find a zone for '${fullRecordName}'.`);
 				}
+				const records = await this.getTxtRecords(zone, fullRecordName);
+				if(!records.length){
+					return reject(`No TXT records found for ${fullRecordName}`);
+				}
+				for(const record of records){
+					if(record.name === fullRecordName && record.content === args.challenge.dnsAuthorization){
+						await this.client.dnsRecords.del(zone.id, record.id);
+					}
+				}
+				// allow time for deletion to propagate
+				await Challenge.verifyPropagation(Object.assign({}, args.challenge, {removed: true}));
+				return resolve(null);
+			}catch(err){
+				return reject(err);
 			}
-			// allow time for deletion to propagate
-			await Challenge.verifyPropagation({
-				dnsHost: args.challenge.dnsHost,
-				dnsAuthorization: null
-			});
-			return callback(null, null);
-		}catch(err){
-			return callback(err);
-		}
+		});
 	}
 
 	/* implemented for testing purposes */
-	async get(args, callback){
-		if(!args.challenge){
-			return callback("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
-		}
-		try{
-			const zone = await this.getZoneForDomain(args.challenge.identifier.value);
-			if(!zone){
-				return callback(`Could not find a zone for '${args.challenge.identifier.value}'.`);
+	async get(args){
+		return new Promise(async (resolve, reject) => {
+			if(!args.challenge){
+				return reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
 			}
-			await Challenge.verifyPropagation({
-				dnsHost: args.challenge.identifier.value,
-				dnsAuthorization: args.challenge.dnsAuthorization
-			});
+			try{
+				const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
+				const zone = await this.getZoneForDomain(fullRecordName);
+				if(!zone){
+					return reject(`Could not find a zone for '${fullRecordName}'.`);
+				}
+				const records = await this.getTxtRecords(zone, fullRecordName);
+				if(!records.length){
+					return resolve(null);
+				}
+				// find the applicable record if multiple
+				let foundRecord = null;
+				for(const record of records){
+					if(record.name === fullRecordName && record.content === args.challenge.dnsAuthorization){
+						foundRecord = record;
+					}
+				}
+				if(!foundRecord){
+					return resolve(null);
+				}
+				return resolve({
+					dnsAuthorization: foundRecord[0].content
+				});
 
-			// record confirmed to exist
-			return callback(null, {
-				dnsAuthorization: args.challenge.dnsAuthorization
-			});
-
-		}catch(err){
-			// could not get record
-			return callback(null, {});
-		}
+			}catch(err){
+				// could not get record
+				return resolve(null);
+			}
+		});
 	}
 
-	async zones(args, callback){
-		const zones = [];
-		for await(const zone of consumePages(pagination =>
-			this.client.zones.browse(pagination)
-		)){
-			zones.push(zone.name);
-		}
-		return callback(null, zones);
+	async zones(args){ // eslint-disable-line no-unused-vars
+		return new Promise(async (resolve) => {
+			const zones = [];
+			for await(const zone of consumePages(pagination =>
+				this.client.zones.browse(pagination)
+			)){
+				zones.push(zone.name);
+			}
+			return resolve(zones);
+		});
 	}
 
 	static async verifyPropagation(challenge, waitFor = 10000, retries = 30){
+		const fullRecordName = challenge.dnsPrefix + '.' + challenge.dnsZone;
 		for(let i = 0; i < retries; i++){
 			try{
-				const records = await resolveTxt(challenge.dnsHost);
-				let verifyCheck = challenge.dnsAuthorization;
+				const records = await resolveTxt(fullRecordName);
+				const verifyCheck = challenge.dnsAuthorization;
+				if(challenge.removed === true){
+					// we're explicitly looking for the record not to exist
+					if(records.includes(verifyCheck)){
+						throw new Error(`DNS record deletion not yet propagated for ${fullRecordName}`);
+					}
+				}
 				if(!records.includes(verifyCheck)){
-					if(verifyCheck === null){
-						// if we're explicitly looking for the record not to exist, we're good
+					if(challenge.removed === true){
 						return;
 					}
-					throw new Error(`Could not verify DNS for ${challenge.dnsHost}`);
+					throw new Error(`Could not verify DNS for ${fullRecordName}`);
 				}
 				return;
 			}catch(err){
+				if(err.code === 'ENODATA' && challenge.removed === true){
+					return;
+				}
 				console.error(err);
 				console.log(`Waiting for ${waitFor} ms before attempting propagation verification retry ${i + 1} / ${retries}.`);
 				await delay(waitFor);
 			}
 		}
-		throw new Error(`Could not verify challenge for '${challenge.dnsHost}'.`);
+		throw new Error(`Could not verify challenge for '${fullRecordName}'.`);
 	}
 
 	async getZoneForDomain(domain){

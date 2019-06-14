@@ -1,11 +1,12 @@
 {
 	"name": "acme-dns-01-cloudflare",
-	"version": "0.0.5",
+	"version": "1.0.0",
 	"description": "ACME dns-01 Challenge for Cloudflare",
 	"keywords": [
 		"acme",
 		"dns",
 		"dns-01",
+		"letsencrypt",
 		"greenlock",
 		"cloudflare"
 	],
