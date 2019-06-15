@@ -1,31 +1,41 @@
-# acme-dns-01-cloudflare
-[greenlock](https://www.npmjs.com/package/greenlock) ACME dns-01 challenge for [Cloudflare](https://www.cloudflare.com/)
-`npm install acme-dns-01-cloudflare --save`
-
+acme-dns-01-cloudflare
+==============
 [![npm version](https://badge.fury.io/js/acme-dns-01-cloudflare.svg)](https://badge.fury.io/js/acme-dns-01-cloudflare)
 [![dependencies Status](https://david-dm.org/nodecraft/acme-dns-01-cloudflare/status.svg)](https://david-dm.org/nodecraft/acme-dns-01-cloudflare)
 
+[Cloudflare](https://www.cloudflare.com/) DNS + Let's Encrypt. This module handles ACME dns-01 challenges, compatible with [Greenlock.js](https://www.npmjs.com/package/greenlock) and [ACME.js](https://www.npmjs.com/package/acme). It passes [acme-dns-01-test](https://www.npmjs.com/package/acme-dns-01-test).
+
+## Install
+```bash
+npm install acme-dns-01-cloudflare --save
+```
+
 ## Usage
+
+First, create an instance of the library with your Cloudflare API credentials. These can be generated/retrieved from your [account profile](https://dash.cloudflare.com/profile).
+
 ```js
-const Greenlock = require('greenlock'),
-	greenlockStore = require('greenlock-store-fs'),
-	LEChallengeCloudflare = require('acme-dns-01-cloudflare');
+const acmeDnsCloudflare = require('acme-dns-01-cloudflare');
 
-const store = greenlockStore.create({
-	configDir: './store/certs',
-	privkeyPath: ':configDir/certs/:hostname.key',
-	bundlePath: ':configDir/certs/:hostname.bundle',
-	fullchainPath: ':configDir/certs/:hostname.fullchain',
-	certPath: ':configDir/certs/:hostname.cert',
-	chainPath: ':configDir/certs/:hostname.chain',
-	logsDir: './store/cert-fix/logs',
-	debug: true
-});
-
-const DNSChallenge = new LEChallengeCloudflare({
+const cloudflareDns01 = new acmeDnsCloudflare({
 	email: 'example@example.com',
 	key: 'xxxxxxx',
 	verifyPropagation: true
+});
+````
+Other options include `waitFor` and `retries` which control the number of propagation retries, and delay between retries. You probably won't need to tweak these unless you're seeing regular DNS related failures.
+
+### Greenlock.js
+
+See the [Greenlock.js documentation](https://www.npmjs.com/package/greenlock) for more information. I'm using the `greenlock-store-fs` module to write these certs to files for demonstration.
+
+```js
+const Greenlock = require('greenlock'),
+	greenlockStore = require('greenlock-store-fs');
+
+const store = greenlockStore.create({
+	configDir: './store/certs',
+	debug: true
 });
 
 const greenlock = Greenlock.create({
@@ -49,4 +59,17 @@ greenlock.register({
 }).catch((err) => {
 	console.error(err);
 });
+```
+
+### ACME.js
+
+```js
+// TODO
+```
+
+
+## Tests
+```bash
+# CLOUDFLARE_EMAIL, CLOUDFLARE_APIKEY and DOMAIN env vars must be set
+node ./test.js
 ```
