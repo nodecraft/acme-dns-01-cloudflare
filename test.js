@@ -18,7 +18,7 @@ const challenger = require("./index.js").create({
 	verifyPropagation: true
 });
 
-var domain = process.env.DOMAIN;
+const domain = process.env.DOMAIN;
 tester.test(type, domain, challenger).then(function(){
 	console.info("PASS");
 }).catch(function(err){

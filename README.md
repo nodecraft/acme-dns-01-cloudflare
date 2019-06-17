@@ -25,9 +25,11 @@ const cloudflareDns01 = new acmeDnsCloudflare({
 ````
 Other options include `waitFor` and `retries` which control the number of propagation retries, and delay between retries. You probably won't need to tweak these unless you're seeing regular DNS related failures.
 
+Then you can use it with any compatible ACME library, such as [Greenlock.js](https://www.npmjs.com/package/greenlock) or [ACME.js](https://www.npmjs.com/package/acme).
+
 ### Greenlock.js
 
-See the [Greenlock.js documentation](https://www.npmjs.com/package/greenlock) for more information. I'm using the `greenlock-store-fs` module to write these certs to files for demonstration.
+See the [Greenlock.js documentation](https://www.npmjs.com/package/greenlock) for more information. The example below uses the `greenlock-store-fs` module to write these certs to disk for demonstration.
 
 ```js
 const Greenlock = require('greenlock'),
@@ -42,7 +44,7 @@ const greenlock = Greenlock.create({
 	server: 'https://acme-staging-v02.api.letsencrypt.org/directory',
 	store: store,
 	challenges: {
-		'dns-01': DNSChallenge
+		'dns-01': cloudflareDns01
 	},
 	challengeType: 'dns-01',
 	debug: true

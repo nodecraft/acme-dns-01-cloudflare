@@ -1,6 +1,6 @@
 {
 	"name": "acme-dns-01-cloudflare",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Cloudflare DNS for Let's Encrypt / ACME dns-01 challenges with Greenlock.js and ACME.js",
 	"keywords": [
 		"acme",
@@ -32,7 +32,7 @@
 		"cloudflare": "^2.4.1"
 	},
 	"devDependencies": {
-		"acme-dns-01-test": "3.2.1",
+		"acme-dns-01-test": "3.3.0",
 		"eslint": "^5.16.0",
 		"eslint-config-nodecraft": "^1.6.0",
 		"eslint-plugin-json": "^1.4.0",

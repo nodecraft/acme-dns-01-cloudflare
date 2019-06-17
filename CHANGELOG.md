@@ -6,5 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2019-06-17
+- Fix issue where invalid Cloudflare credentials wouldn't be caught and rejected in `zones`
+- Bump `acme-dns-01-test` to 3.3.0
+- Add `init` function to pass new test requirements
+
 ## [1.0.0] - 2019-06-15
 - Initial production release

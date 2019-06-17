@@ -20,6 +20,10 @@ class Challenge{
 		return new Challenge(Object.assign(config, this.options));
 	}
 
+	init(){
+		return null;
+	}
+
 	async set(args){
 		return new Promise(async (resolve, reject) => {
 			if(!args.challenge){
@@ -115,14 +119,18 @@ class Challenge{
 	}
 
 	async zones(args){ // eslint-disable-line no-unused-vars
-		return new Promise(async (resolve) => {
-			const zones = [];
-			for await(const zone of consumePages(pagination =>
-				this.client.zones.browse(pagination)
-			)){
-				zones.push(zone.name);
+		return new Promise(async (resolve, reject) => {
+			try{
+				const zones = [];
+				for await(const zone of consumePages(pagination =>
+					this.client.zones.browse(pagination)
+				)){
+					zones.push(zone.name);
+				}
+				return resolve(zones);
+			}catch(err){
+				return reject(err);
 			}
-			return resolve(zones);
 		});
 	}
 
