@@ -5,5 +5,8 @@
 	"plugins": [
 		"json",
 		"node"
-	]
+	],
+	"rules": {
+		"no-async-promise-executor": "off"
+	}
 }
