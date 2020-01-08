@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2020-01
+- Bump `cloudflare` to 2.7.0
+- Enable using an API token for Cloudflare instead of email + API Key
+- Bump `acme-dns-01-test` to 3.3.2
+- `init` function returns a Promise
+- Add Greenlock v3 example to docs
+
 ## [1.0.2] - 2019-07-15
 - Bump dependencies
 
