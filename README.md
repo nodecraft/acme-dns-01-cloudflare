@@ -62,15 +62,37 @@ greenlock.register({
 });
 ```
 
-Greenlock v3:
-```json
-"challenges": {
-	"dns-01": {
-		"module": "acme-dns-01-cloudflare",
-		"token": "xxxxxx",
-		"verifyPropagation": true
+Greenlock v4:
+```js
+const Greenlock = require('greenlock');
+
+const greenlock = Greenlock.create({
+	configDir: "./store",
+	maintainerEmail: "example@example.com"
+});
+
+greenlock.manager.defaults({
+	agreeToTerms: true,
+	subscriberEmail: "example@example.com",
+	store: {
+		module: "greenlock-store-fs",
+		basePath: "./store/certs"
+	},
+	challenges: {
+		"dns-01": {
+			module: "acme-dns-01-cloudflare",
+			token: "xxxxxx",
+			verifyPropagation: true
+		}
 	}
-}
+});
+
+greenlock.add({
+	subject: "example.com",
+	altnames: ["example.com", "www.example.com"]
+}).then(function(){
+	console.log("SUCCESS");
+}).catch(console.error);
 ```
 
 ### ACME.js
