@@ -2,13 +2,7 @@
 
 /* eslint-disable no-process-exit */
 if(!process.env.CLOUDFLARE_TOKEN && !(process.env.CLOUDFLARE_EMAIL && process.env.CLOUDFLARE_APIKEY)){
-	console.error(`Missing CLOUDFLARE_TOKEN or ${
-		process.env.CLOUDFLARE_EMAIL ? '' : 'CLOUDFLARE_EMAIL'
-	}${
-		process.env.CLOUDFLARE_EMAIL && process.env.CLOUDFLARE_APIKEY ? ' and ' : ''
-	}${
-		process.env.CLOUDFLARE_APIKEY ? '' : 'CLOUDFLARE_APIKEY'
-	} env`);
+	console.error('Missing CLOUDFLARE_TOKEN or both CLOUDFLARE_EMAIL and CLOUDFLARE_APIKEY env');
 	process.exit(1);
 }
 if(!process.env.DOMAIN){
