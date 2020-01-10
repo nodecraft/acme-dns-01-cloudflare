@@ -12,7 +12,8 @@ class Challenge{
 		this.options = options;
 		this.client = new cloudflare({
 			email: options.email,
-			key: options.key
+			key: options.key,
+			token: options.token
 		});
 	}
 
@@ -20,8 +21,8 @@ class Challenge{
 		return new Challenge(Object.assign(config, this.options));
 	}
 
-	init(){
-		return null;
+	async init(){
+		return Promise.resolve(null);
 	}
 
 	async set(args){

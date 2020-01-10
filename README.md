@@ -12,14 +12,13 @@ npm install acme-dns-01-cloudflare --save
 
 ## Usage
 
-First, create an instance of the library with your Cloudflare API credentials. These can be generated/retrieved from your [account profile](https://dash.cloudflare.com/profile).
+First, create an instance of the library with your Cloudflare API credentials or an API token. These can be generated/retrieved from your [account profile](https://dash.cloudflare.com/profile).
 
 ```js
 const acmeDnsCloudflare = require('acme-dns-01-cloudflare');
 
 const cloudflareDns01 = new acmeDnsCloudflare({
-	email: 'example@example.com',
-	key: 'xxxxxxx',
+	token: 'xxxxxx',
 	verifyPropagation: true
 });
 ````
@@ -63,6 +62,39 @@ greenlock.register({
 });
 ```
 
+Greenlock v4:
+```js
+const Greenlock = require('greenlock');
+
+const greenlock = Greenlock.create({
+	configDir: "./store",
+	maintainerEmail: "example@example.com"
+});
+
+greenlock.manager.defaults({
+	agreeToTerms: true,
+	subscriberEmail: "example@example.com",
+	store: {
+		module: "greenlock-store-fs",
+		basePath: "./store/certs"
+	},
+	challenges: {
+		"dns-01": {
+			module: "acme-dns-01-cloudflare",
+			token: "xxxxxx",
+			verifyPropagation: true
+		}
+	}
+});
+
+greenlock.add({
+	subject: "example.com",
+	altnames: ["example.com", "www.example.com"]
+}).then(function(){
+	console.log("SUCCESS");
+}).catch(console.error);
+```
+
 ### ACME.js
 
 ```js
@@ -72,6 +104,6 @@ greenlock.register({
 
 ## Tests
 ```bash
-# CLOUDFLARE_EMAIL, CLOUDFLARE_APIKEY and DOMAIN env vars must be set
+# CLOUDFLARE_TOKEN or both CLOUDFLARE_EMAIL and CLOUDFLARE_APIKEY env vars must be set, as well as DOMAIN
 node ./test.js
 ```
