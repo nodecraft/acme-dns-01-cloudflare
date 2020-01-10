@@ -10,9 +10,26 @@ acme-dns-01-cloudflare
 npm install acme-dns-01-cloudflare --save
 ```
 
+## Cloudflare API Token
+
+Whilst you can use a global API key and email to generate certs, we heavily encourage that you use a new Cloudflare API token for increased security.
+
+From your [Cloudflare Profile page](https://dash.cloudflare.com/profile), create an API Token with the following permissions:
+
+- Account -> Account Settings: Read
+- Zone -> Zone: Read
+- Zone -> DNS: Edit
+
+For the Account Resources, make sure you select the appropriate account if you have multiple Cloudflare accounts. This permission is needed to list zones, as the `com.cloudflare.api.account.zone.list` permission seemingly can't be applied yet - account resources seems to grant this implicitly.
+
+Then, for each Zone that you want to be able to generate certs for, add each of under the "Zone Resources", or include all zones if you're comfortable doing so. The resulting API token should look something like this:
+
+![Cloudflare API Token generation](https://up.jross.me/unlai)
+
 ## Usage
 
-First, create an instance of the library with your Cloudflare API credentials or an API token. These can be generated/retrieved from your [account profile](https://dash.cloudflare.com/profile).
+First, create an instance of the library with your Cloudflare API credentials or an API token. See the instructions above for more information.
+
 
 ```js
 const acmeDnsCloudflare = require('acme-dns-01-cloudflare');
@@ -26,9 +43,46 @@ Other options include `waitFor` and `retries` which control the number of propag
 
 Then you can use it with any compatible ACME library, such as [Greenlock.js](https://www.npmjs.com/package/greenlock) or [ACME.js](https://www.npmjs.com/package/acme).
 
-### Greenlock.js
 
-See the [Greenlock.js documentation](https://www.npmjs.com/package/greenlock) for more information. The example below uses the `greenlock-store-fs` module to write these certs to disk for demonstration.
+#### Greenlock.js v4
+
+See the [Greenlock.js documentation](https://www.npmjs.com/package/greenlock) for more information.
+
+```js
+const Greenlock = require('greenlock');
+
+const greenlock = Greenlock.create({
+	configDir: "./store",
+	maintainerEmail: "example@example.com"
+});
+
+greenlock.manager.defaults({
+	agreeToTerms: true,
+	subscriberEmail: "example@example.com",
+	store: {
+		module: "greenlock-store-fs",
+		basePath: "./store/certs"
+	},
+	challenges: {
+		"dns-01": {
+			module: "acme-dns-01-cloudflare",
+			token: "xxxxxx",
+			verifyPropagation: true
+		}
+	}
+});
+
+greenlock.add({
+	subject: "example.com",
+	altnames: ["example.com", "www.example.com"]
+}).then(function(){
+	console.log("SUCCESS");
+}).catch(console.error);
+```
+
+### Greenlock.js v2
+
+The example below uses the `greenlock-store-fs` module to write these certs to disk for demonstration.
 
 ```js
 const Greenlock = require('greenlock'),
@@ -62,38 +116,7 @@ greenlock.register({
 });
 ```
 
-Greenlock v4:
-```js
-const Greenlock = require('greenlock');
 
-const greenlock = Greenlock.create({
-	configDir: "./store",
-	maintainerEmail: "example@example.com"
-});
-
-greenlock.manager.defaults({
-	agreeToTerms: true,
-	subscriberEmail: "example@example.com",
-	store: {
-		module: "greenlock-store-fs",
-		basePath: "./store/certs"
-	},
-	challenges: {
-		"dns-01": {
-			module: "acme-dns-01-cloudflare",
-			token: "xxxxxx",
-			verifyPropagation: true
-		}
-	}
-});
-
-greenlock.add({
-	subject: "example.com",
-	altnames: ["example.com", "www.example.com"]
-}).then(function(){
-	console.log("SUCCESS");
-}).catch(console.error);
-```
 
 ### ACME.js
 
