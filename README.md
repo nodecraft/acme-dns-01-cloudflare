@@ -44,7 +44,7 @@ Other options include `waitFor` and `retries` which control the number of propag
 Then you can use it with any compatible ACME library, such as [Greenlock.js](https://www.npmjs.com/package/greenlock) or [ACME.js](https://www.npmjs.com/package/acme).
 
 
-#### Greenlock.js v4
+### Greenlock.js v4
 
 See the [Greenlock.js documentation](https://www.npmjs.com/package/greenlock) for more information.
 
@@ -64,11 +64,7 @@ greenlock.manager.defaults({
 		basePath: "./store/certs"
 	},
 	challenges: {
-		"dns-01": {
-			module: "acme-dns-01-cloudflare",
-			token: "xxxxxx",
-			verifyPropagation: true
-		}
+		"dns-01": cloudflareDns01
 	}
 });
 
