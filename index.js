@@ -26,113 +26,105 @@ class Challenge{
 	}
 
 	async set(args){
-		return new Promise(async (resolve, reject) => {
-			if(!args.challenge){
-				return reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
+		if(!args.challenge){
+			return Promise.reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
+		}
+		try{
+			const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
+			const zone = await this.getZoneForDomain(args.challenge.dnsZone);
+			if(!zone){
+				return Promise.reject(`Could not find a zone for '${fullRecordName}'.`);
 			}
-			try{
-				const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
-				const zone = await this.getZoneForDomain(args.challenge.dnsZone);
-				if(!zone){
-					return reject(`Could not find a zone for '${fullRecordName}'.`);
-				}
-				// add record
-				await this.client.dnsRecords.add(zone.id, {
-					type: 'TXT',
-					name: fullRecordName,
-					content: args.challenge.dnsAuthorization,
-					ttl: 120
-				});
-				if(this.options.verifyPropagation){
-					await Challenge.verifyPropagation(args.challenge, this.options.waitFor, this.options.retries);
-				}
-				return resolve(null);
-			}catch(err){
-				return reject(err);
+			// add record
+			await this.client.dnsRecords.add(zone.id, {
+				type: 'TXT',
+				name: fullRecordName,
+				content: args.challenge.dnsAuthorization,
+				ttl: 120
+			});
+			if(this.options.verifyPropagation){
+				await Challenge.verifyPropagation(args.challenge, this.options.waitFor, this.options.retries);
 			}
-		});
+			return null;
+		}catch(err){
+			throw new Error(err);
+		}
 	}
 
 	async remove(args){
-		return new Promise(async (resolve, reject) => {
-			if(!args.challenge){
-				return reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
+		if(!args.challenge){
+			return Promise.reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
+		}
+		try{
+			const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
+			const zone = await this.getZoneForDomain(args.challenge.dnsZone);
+			if(!zone){
+				return Promise.reject(`Could not find a zone for '${fullRecordName}'.`);
 			}
-			try{
-				const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
-				const zone = await this.getZoneForDomain(args.challenge.dnsZone);
-				if(!zone){
-					return reject(`Could not find a zone for '${fullRecordName}'.`);
-				}
-				const records = await this.getTxtRecords(zone, fullRecordName);
-				if(!records.length){
-					return reject(`No TXT records found for ${fullRecordName}`);
-				}
-				for(const record of records){
-					if(record.name === fullRecordName && record.content === args.challenge.dnsAuthorization){
-						await this.client.dnsRecords.del(zone.id, record.id);
-					}
-				}
-				// allow time for deletion to propagate
-				await Challenge.verifyPropagation(Object.assign({}, args.challenge, {removed: true}));
-				return resolve(null);
-			}catch(err){
-				return reject(err);
+			const records = await this.getTxtRecords(zone, fullRecordName);
+			if(!records.length){
+				return Promise.reject(`No TXT records found for ${fullRecordName}`);
 			}
-		});
+			for(const record of records){
+				if(record.name === fullRecordName && record.content === args.challenge.dnsAuthorization){
+					await this.client.dnsRecords.del(zone.id, record.id);
+				}
+			}
+			// allow time for deletion to propagate
+			await Challenge.verifyPropagation(Object.assign({}, args.challenge, {removed: true}));
+			return null;
+		}catch(err){
+			throw new Error(err);
+		}
 	}
 
 	/* implemented for testing purposes */
 	async get(args){
-		return new Promise(async (resolve, reject) => {
-			if(!args.challenge){
-				return reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
+		if(!args.challenge){
+			return Promise.reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
+		}
+		try{
+			const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
+			const zone = await this.getZoneForDomain(fullRecordName);
+			if(!zone){
+				return Promise.reject(`Could not find a zone for '${fullRecordName}'.`);
 			}
-			try{
-				const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
-				const zone = await this.getZoneForDomain(fullRecordName);
-				if(!zone){
-					return reject(`Could not find a zone for '${fullRecordName}'.`);
+			const records = await this.getTxtRecords(zone, fullRecordName);
+			if(!records.length){
+				return null;
+			}
+			// find the applicable record if multiple
+			let foundRecord = null;
+			for(const record of records){
+				if(record.name === fullRecordName && record.content === args.challenge.dnsAuthorization){
+					foundRecord = record;
 				}
-				const records = await this.getTxtRecords(zone, fullRecordName);
-				if(!records.length){
-					return resolve(null);
-				}
-				// find the applicable record if multiple
-				let foundRecord = null;
-				for(const record of records){
-					if(record.name === fullRecordName && record.content === args.challenge.dnsAuthorization){
-						foundRecord = record;
-					}
-				}
-				if(!foundRecord){
-					return resolve(null);
-				}
-				return resolve({
-					dnsAuthorization: foundRecord.content
-				});
+			}
+			if(!foundRecord){
+				return null;
+			}
+			return {
+				dnsAuthorization: foundRecord.content
+			};
 
-			}catch(err){
-				// could not get record
-				return resolve(null);
-			}
-		});
+		}catch(err){
+			// could not get record
+			return null;
+		}
 	}
 
 	async zones(args){ // eslint-disable-line no-unused-vars
-		return new Promise(async (resolve, reject) => {
-			try{
-				const zones = [];
-				for await(const zone of consumePages(pagination =>
-					this.client.zones.browse(pagination)
-				)){
-					zones.push(zone.name);
-				}
-				return resolve(zones);
-			}catch(err){
-				return reject(err);
+		try{
+			const zones = [];
+			for await(const zone of consumePages(pagination =>
+				this.client.zones.browse(pagination)
+			)){
+				zones.push(zone.name);
 			}
-		});
+			return zones;
+		}catch(err){
+			throw new Error(err);
+		}
 	}
 
 	static async verifyPropagation(challenge, waitFor = 10000, retries = 30){
