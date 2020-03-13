@@ -7,7 +7,7 @@ const resolveTxtPromise = util.promisify(dns.resolveTxt);
 
 const cloudflare = require('cloudflare');
 
-class Challenge{
+class Challenge {
 	constructor(options){
 		this.options = options;
 		this.client = new cloudflare({
