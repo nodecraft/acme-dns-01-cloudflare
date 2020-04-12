@@ -36,7 +36,8 @@ const acmeDnsCloudflare = require('acme-dns-01-cloudflare');
 
 const cloudflareDns01 = new acmeDnsCloudflare({
 	token: 'xxxxxx',
-	verifyPropagation: true
+	verifyPropagation: true,
+	verbose: true // log propagation delays and other debug information
 });
 ````
 Other options include `waitFor` and `retries` which control the number of propagation retries, and delay between retries. You probably won't need to tweak these unless you're seeing regular DNS related failures.

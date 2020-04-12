@@ -7,6 +7,36 @@ const resolveTxtPromise = util.promisify(dns.resolveTxt);
 
 const cloudflare = require('cloudflare');
 
+
+/* Thanks to https://github.com/buschtoens/le-challenge-cloudflare for this great pagination implementation */
+async function* consumePages(loader, pageSize = 10){
+	for(let page = 1, didReadAll = false; !didReadAll; page++){
+		const response = await loader({
+			per_page: pageSize,
+			page
+		});
+
+		if(response.success){
+			yield* response.result;
+		}else{
+			const error = new Error('Cloudflare API error.');
+			error.errors = response.errors;
+			throw error;
+		}
+
+		didReadAll = page >= response.result_info.total_pages;
+	}
+}
+
+async function resolveTxt(fqdn){
+	const records = await resolveTxtPromise(fqdn);
+	return records.map(r => r.join(' '));
+}
+
+function delay(ms){
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 class Challenge {
 	constructor(options){
 		this.options = options;
@@ -43,7 +73,7 @@ class Challenge {
 				ttl: 120
 			});
 			if(this.options.verifyPropagation){
-				await Challenge.verifyPropagation(args.challenge, this.options.waitFor, this.options.retries);
+				await Challenge.verifyPropagation(args.challenge, this.options.verbose, this.options.waitFor, this.options.retries);
 			}
 			return null;
 		}catch(err){
@@ -71,7 +101,7 @@ class Challenge {
 				}
 			}
 			// allow time for deletion to propagate
-			await Challenge.verifyPropagation(Object.assign({}, args.challenge, {removed: true}));
+			await Challenge.verifyPropagation(Object.assign({}, args.challenge, {removed: true}), this.options.verbose);
 			return null;
 		}catch(err){
 			throw new Error(err);
@@ -116,9 +146,9 @@ class Challenge {
 	async zones(args){ // eslint-disable-line no-unused-vars
 		try{
 			const zones = [];
-			for await(const zone of consumePages(pagination =>
-				this.client.zones.browse(pagination)
-			)){
+			for await(const zone of consumePages((pagination) => {
+				this.client.zones.browse(pagination);
+			})){
 				zones.push(zone.name);
 			}
 			return zones;
@@ -127,7 +157,7 @@ class Challenge {
 		}
 	}
 
-	static async verifyPropagation(challenge, waitFor = 10000, retries = 30){
+	static async verifyPropagation(challenge, verbose = false, waitFor = 10000, retries = 30){
 		const fullRecordName = challenge.dnsPrefix + '.' + challenge.dnsZone;
 		for(let i = 0; i < retries; i++){
 			try{
@@ -150,8 +180,10 @@ class Challenge {
 				if(err.code === 'ENODATA' && challenge.removed === true){
 					return;
 				}
-				console.error(err);
-				console.log(`Waiting for ${waitFor} ms before attempting propagation verification retry ${i + 1} / ${retries}.`);
+				if(verbose){
+					console.error(err);
+					console.log(`Waiting for ${waitFor} ms before attempting propagation verification retry ${i + 1} / ${retries}.`);
+				}
 				await delay(waitFor);
 			}
 		}
@@ -159,9 +191,9 @@ class Challenge {
 	}
 
 	async getZoneForDomain(domain){
-		for await(const zone of consumePages(pagination =>
-			this.client.zones.browse(pagination)
-		)){
+		for await(const zone of consumePages((pagination) => {
+			this.client.zones.browse(pagination);
+		})){
 			if(domain.endsWith(zone.name)){
 				return zone;
 			}
@@ -172,13 +204,13 @@ class Challenge {
 	async getTxtRecords(zone, name){
 		const records = [];
 
-		for await(const txtRecord of consumePages(pagination =>
+		for await(const txtRecord of consumePages((pagination) => {
 			this.client.dnsRecords.browse(zone.id, {
 				...pagination,
 				type: 'TXT',
 				name
-			})
-		)){
+			});
+		})){
 			if(txtRecord.name === name){
 				records.push(txtRecord);
 			}
@@ -186,35 +218,6 @@ class Challenge {
 
 		return records;
 	}
-}
-
-/* Thanks to https://github.com/buschtoens/le-challenge-cloudflare for this great pagination implementation */
-async function* consumePages(loader, pageSize = 10){
-	for(let page = 1, didReadAll = false; !didReadAll; page++){
-		const response = await loader({
-			per_page: pageSize,
-			page
-		});
-
-		if(response.success){
-			yield* response.result;
-		}else{
-			const error = new Error('Cloudflare API error.');
-			error.errors = response.errors;
-			throw error;
-		}
-
-		didReadAll = page >= response.result_info.total_pages;
-	}
-}
-
-async function resolveTxt(fqdn){
-	const records = await resolveTxtPromise(fqdn);
-	return records.map(r => r.join(' '));
-}
-
-function delay(ms){
-	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 module.exports = Challenge;
