@@ -12,19 +12,19 @@ npm install acme-dns-01-cloudflare --save
 
 ## Cloudflare API Token
 
-Whilst you can use a global API key and email to generate certs, we heavily encourage that you use a new Cloudflare API token for increased security.
+Whilst you can use a global API key and email to generate certs, we heavily encourage that you use a Cloudflare API token for increased security.
 
 From your [Cloudflare Profile page](https://dash.cloudflare.com/profile), create an API Token with the following permissions:
 
-- Account -> Account Settings: Read
 - Zone -> Zone: Read
 - Zone -> DNS: Edit
 
-For the Account Resources, make sure you select the appropriate account if you have multiple Cloudflare accounts. This permission is needed to list zones, as the `com.cloudflare.api.account.zone.list` permission seemingly can't be applied yet - account resources seems to grant this implicitly.
+Unfortunately at this time, there is no way to acquire the `com.cloudflare.api.account.zone.list` permission needed to list zones without giving the key `Zone: Read` access to all zones. Further discussion of this can be found [here](https://github.com/nodecraft/acme-dns-01-cloudflare/issues/8) and hopefully there'll be a better solution in the future.
 
-Then, for each Zone that you want to be able to generate certs for, add each of under the "Zone Resources", or include all zones if you're comfortable doing so. The resulting API token should look something like this:
+The resulting API token should look something like this:
 
-![Cloudflare API Token generation](https://up.jross.me/unlai)
+
+![Cloudflare API Token generation](https://up.jross.me/x2dcm)
 
 ## Usage
 
