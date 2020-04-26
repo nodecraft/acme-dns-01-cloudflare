@@ -16,7 +16,8 @@ const challenger = require("./index.js").create({
 	token: process.env.CLOUDFLARE_TOKEN,
 	email: process.env.CLOUDFLARE_EMAIL,
 	key: process.env.CLOUDFLARE_APIKEY,
-	verifyPropagation: true
+	verifyPropagation: true,
+	verbose: true
 });
 
 const domain = process.env.DOMAIN;
