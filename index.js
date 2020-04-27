@@ -62,13 +62,13 @@ class Challenge {
 
 	async set(args){
 		if(!args.challenge){
-			return Promise.reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
+			throw new Error("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
 		}
 		try{
 			const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
 			const zone = await this.getZoneForDomain(args.challenge.dnsZone);
 			if(!zone){
-				return Promise.reject(`Could not find a zone for '${fullRecordName}'.`);
+				throw new Error(`Could not find a zone for '${fullRecordName}'.`);
 			}
 			// add record
 			await this.client.dnsRecords.add(zone.id, {
@@ -85,23 +85,26 @@ class Challenge {
 			}
 			return null;
 		}catch(err){
+			if(err instanceof Error){
+				throw err;
+			}
 			throw new Error(err);
 		}
 	}
 
 	async remove(args){
 		if(!args.challenge){
-			return Promise.reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
+			throw new Error("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
 		}
 		try{
 			const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
 			const zone = await this.getZoneForDomain(args.challenge.dnsZone);
 			if(!zone){
-				return Promise.reject(`Could not find a zone for '${fullRecordName}'.`);
+				throw new Error(`Could not find a zone for '${fullRecordName}'.`);
 			}
 			const records = await this.getTxtRecords(zone, fullRecordName);
 			if(!records.length){
-				return Promise.reject(`No TXT records found for ${fullRecordName}`);
+				throw new Error(`No TXT records found for ${fullRecordName}`);
 			}
 			for(const record of records){
 				if(record.name === fullRecordName && record.content === args.challenge.dnsAuthorization){
@@ -116,6 +119,9 @@ class Challenge {
 			}
 			return null;
 		}catch(err){
+			if(err instanceof Error){
+				throw err;
+			}
 			throw new Error(err);
 		}
 	}
@@ -123,13 +129,13 @@ class Challenge {
 	/* implemented for testing purposes */
 	async get(args){
 		if(!args.challenge){
-			return Promise.reject("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
+			throw new Error("You must be using Greenlock v2.7+ to use acme-dns-01-cloudflare");
 		}
 		try{
 			const fullRecordName = args.challenge.dnsPrefix + '.' + args.challenge.dnsZone;
 			const zone = await this.getZoneForDomain(fullRecordName);
 			if(!zone){
-				return Promise.reject(`Could not find a zone for '${fullRecordName}'.`);
+				throw new Error(`Could not find a zone for '${fullRecordName}'.`);
 			}
 			const records = await this.getTxtRecords(zone, fullRecordName);
 			if(!records.length){
@@ -163,6 +169,9 @@ class Challenge {
 			}
 			return zones;
 		}catch(err){
+			if(err instanceof Error){
+				throw err;
+			}
 			throw new Error(err);
 		}
 	}

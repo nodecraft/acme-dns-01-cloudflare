@@ -6,9 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2020-04-26
+- Fix promise rejections to always return an Error instance for better compatibility with ACME.js
+
 ## [1.2.0] - 2020-04-26
 - Add ACME.js propagationDelay support
-- Wait 10 seconds before attempting first propagation check, to prevent poluting the DNS cache with an invalid result
+- Wait 10 seconds before attempting first propagation check, to prevent polluting the DNS cache with an invalid result
 
 ## [1.1.1] - 2020-02-04
 - Simplify promise handlers
