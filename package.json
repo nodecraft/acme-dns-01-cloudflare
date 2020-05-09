@@ -1,6 +1,6 @@
 {
 	"name": "acme-dns-01-cloudflare",
-	"version": "1.2.1",
+	"version": "1.2.2",
 	"description": "Cloudflare DNS for Let's Encrypt / ACME dns-01 challenges with Greenlock.js and ACME.js",
 	"keywords": [
 		"acme",

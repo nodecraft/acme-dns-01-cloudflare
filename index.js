@@ -7,21 +7,36 @@ const resolveTxtPromise = util.promisify(dns.resolveTxt);
 
 const cloudflare = require('cloudflare');
 
+function formatCloudflareError(err){
+	if(!err.response || !err.response.body){
+		return err;
+	}
+	// maintain Cloudflare API errors, not just a generic HTTPError from `got`
+	const newErr = err;
+	newErr.cloudflare_errors = err.response.body.errors;
+	return newErr;
+}
 
 /* Thanks to https://github.com/buschtoens/le-challenge-cloudflare for this great pagination implementation */
 async function* consumePages(loader, pageSize = 10){
 	for(let page = 1, didReadAll = false; !didReadAll; page++){
-		const response = await loader({
-			per_page: pageSize,
-			page
-		});
+		let response;
+		try{
+			response = await loader({
+				per_page: pageSize,
+				page
+			});
+		}catch(err){
+			// try to pass-through human-friendly Cloudflare API errors
+			throw formatCloudflareError(err);
+		}
 
 		if(response.success){
 			yield* response.result;
 		}else{
 			const error = new Error('Cloudflare API error.');
-			error.errors = response.errors;
-			throw error;
+			error.response = response;
+			throw formatCloudflareError(error);
 		}
 
 		didReadAll = page >= response.result_info.total_pages;
@@ -86,7 +101,7 @@ class Challenge {
 			return null;
 		}catch(err){
 			if(err instanceof Error){
-				throw err;
+				throw formatCloudflareError(err);
 			}
 			throw new Error(err);
 		}
@@ -120,7 +135,7 @@ class Challenge {
 			return null;
 		}catch(err){
 			if(err instanceof Error){
-				throw err;
+				throw formatCloudflareError(err);
 			}
 			throw new Error(err);
 		}
@@ -170,7 +185,7 @@ class Challenge {
 			return zones;
 		}catch(err){
 			if(err instanceof Error){
-				throw err;
+				throw formatCloudflareError(err);
 			}
 			throw new Error(err);
 		}
