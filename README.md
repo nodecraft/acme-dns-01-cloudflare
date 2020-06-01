@@ -51,8 +51,10 @@ See the [Greenlock.js documentation](https://www.npmjs.com/package/greenlock) fo
 
 ```js
 const Greenlock = require('greenlock');
+const pkg = require('./package.json');
 
 const greenlock = Greenlock.create({
+	packageAgent: pkg.name + '/' + pkg.version,
 	configDir: "./store",
 	maintainerEmail: "example@example.com"
 });
