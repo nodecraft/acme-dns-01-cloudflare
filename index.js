@@ -225,7 +225,7 @@ class Challenge {
 
 	async getZoneForDomain(domain){
 		for await(const zone of consumePages(pagination => this.client.zones.browse(pagination))){
-			if(domain.endsWith(zone.name)){
+			if(domain === zone.name || domain.endsWith(`.${zone.name}`)){
 				return zone;
 			}
 		}
