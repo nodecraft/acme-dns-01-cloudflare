@@ -1,9 +1,9 @@
 'use strict';
 
-const util = require('util');
+const {promisify} = require('util');
 const dns = require('dns');
 
-const resolveTxtPromise = util.promisify(dns.resolveTxt);
+const resolveTxtPromise = promisify(dns.resolveTxt);
 
 const cloudflare = require('cloudflare');
 
@@ -49,7 +49,11 @@ async function resolveTxt(fqdn){
 }
 
 function delay(ms){
-	return new Promise(resolve => setTimeout(resolve, ms));
+	return new Promise((resolve) => {
+		setTimeout(() => {
+			resolve();
+		}, ms);
+	});
 }
 
 class Challenge {
@@ -118,7 +122,7 @@ class Challenge {
 				throw new Error(`Could not find a zone for '${fullRecordName}'.`);
 			}
 			const records = await this.getTxtRecords(zone, fullRecordName);
-			if(!records.length){
+			if(records.length === 0){
 				throw new Error(`No TXT records found for ${fullRecordName}`);
 			}
 			for(const record of records){
@@ -153,7 +157,7 @@ class Challenge {
 				throw new Error(`Could not find a zone for '${fullRecordName}'.`);
 			}
 			const records = await this.getTxtRecords(zone, fullRecordName);
-			if(!records.length){
+			if(records.length === 0){
 				return null;
 			}
 			// find the applicable record if multiple
@@ -170,7 +174,7 @@ class Challenge {
 				dnsAuthorization: foundRecord.content
 			};
 
-		}catch(err){
+		}catch{
 			// could not get record
 			return null;
 		}
@@ -197,11 +201,8 @@ class Challenge {
 			try{
 				const records = await resolveTxt(fullRecordName);
 				const verifyCheck = challenge.dnsAuthorization;
-				if(challenge.removed === true){
-					// we're explicitly looking for the record not to exist
-					if(records.includes(verifyCheck)){
-						throw new Error(`DNS record deletion not yet propagated for ${fullRecordName}`);
-					}
+				if(challenge.removed === true && records.includes(verifyCheck)){
+					throw new Error(`DNS record deletion not yet propagated for ${fullRecordName}`);
 				}
 				if(!records.includes(verifyCheck)){
 					if(challenge.removed === true){
