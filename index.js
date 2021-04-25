@@ -67,10 +67,10 @@ class Challenge {
 		});
 		this.client = {
 
-			email: options.cfClient?.email || options.client?.email || options.email,
-			key: options.cfClient?.key || options.client?.key || options.key,
-			token: options.cfClient?.token || options.client?.token || options.token
-		}
+			email: options.client?.email || options.email,
+			key: options.client?.key || options.key,
+			token: options.client?.token || options.token
+		};
 		this.propagationDelay = options.propagationDelay || 15000; // set propagationDelay for ACME.js
 		if(this.options.verifyPropagation){
 			// if our own propagation is set, like is required for greenlock.js at time of writing, disable use native ACME.js propagation delay to prevent double verification
