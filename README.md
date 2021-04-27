@@ -1,7 +1,6 @@
 acme-dns-01-cloudflare
 ==============
 [![npm version](https://badge.fury.io/js/acme-dns-01-cloudflare.svg)](https://badge.fury.io/js/acme-dns-01-cloudflare)
-[![dependencies Status](https://david-dm.org/nodecraft/acme-dns-01-cloudflare/status.svg)](https://david-dm.org/nodecraft/acme-dns-01-cloudflare)
 [![Actions Status](https://github.com/nodecraft/acme-dns-01-cloudflare/workflows/Test/badge.svg)](https://github.com/nodecraft/acme-dns-01-cloudflare/actions)
 
 [Cloudflare](https://www.cloudflare.com/) DNS + Let's Encrypt. This module handles ACME dns-01 challenges, compatible with [Greenlock.js](https://www.npmjs.com/package/greenlock) and [ACME.js](https://www.npmjs.com/package/acme). It passes [acme-dns-01-test](https://www.npmjs.com/package/acme-dns-01-test).

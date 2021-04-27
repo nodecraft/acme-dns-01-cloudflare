@@ -45,7 +45,7 @@ async function* consumePages(loader, pageSize = 10){
 
 async function resolveTxt(fqdn){
 	const records = await resolveTxtPromise(fqdn);
-	return records.map(r => r.join(' '));
+	return records.map(record => record.join(' '));
 }
 
 function delay(ms){

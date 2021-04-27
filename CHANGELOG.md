@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.3] - 2021-04-027
+- Fix issues with greenlock serialisation of `client` object. See https://github.com/nodecraft/acme-dns-01-cloudflare/issues/20 for more info.
+
 ## [1.2.3] - 2020-06-07
 - Fix over-eager zone matching that could cause certs for `testing-example.com` to fail if domain `example.com` was available
 
