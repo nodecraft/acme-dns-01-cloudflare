@@ -58,12 +58,19 @@ function delay(ms){
 
 class Challenge {
 	constructor(options = {}){
+		this.module = "acme-dns-01-cloudflare";
 		this.options = options;
-		this.client = new cloudflare({
-			email: options.email,
-			key: options.key,
-			token: options.token
+		this.cfClient = new cloudflare({
+			email: options.client?.email || options.email,
+			key: options.client?.key || options.key,
+			token: options.client?.token || options.token
 		});
+		this.client = {
+
+			email: options.client?.email || options.email,
+			key: options.client?.key || options.key,
+			token: options.client?.token || options.token
+		};
 		this.propagationDelay = options.propagationDelay || 15000; // set propagationDelay for ACME.js
 		if(this.options.verifyPropagation){
 			// if our own propagation is set, like is required for greenlock.js at time of writing, disable use native ACME.js propagation delay to prevent double verification
@@ -90,7 +97,7 @@ class Challenge {
 				throw new Error(`Could not find a zone for '${fullRecordName}'.`);
 			}
 			// add record
-			await this.client.dnsRecords.add(zone.id, {
+			await this.cfClient.dnsRecords.add(zone.id, {
 				type: 'TXT',
 				name: fullRecordName,
 				content: args.challenge.dnsAuthorization,
@@ -127,7 +134,7 @@ class Challenge {
 			}
 			for(const record of records){
 				if(record.name === fullRecordName && record.content === args.challenge.dnsAuthorization){
-					await this.client.dnsRecords.del(zone.id, record.id);
+					await this.cfClient.dnsRecords.del(zone.id, record.id);
 				}
 			}
 			if(this.options.verifyPropagation){
@@ -183,7 +190,7 @@ class Challenge {
 	async zones(args){ // eslint-disable-line no-unused-vars
 		try{
 			const zones = [];
-			for await(const zone of consumePages(pagination => this.client.zones.browse(pagination))){
+			for await(const zone of consumePages(pagination => this.cfClient.zones.browse(pagination))){
 				zones.push(zone.name);
 			}
 			return zones;
@@ -225,7 +232,7 @@ class Challenge {
 	}
 
 	async getZoneForDomain(domain){
-		for await(const zone of consumePages(pagination => this.client.zones.browse(pagination))){
+		for await(const zone of consumePages(pagination => this.cfClient.zones.browse(pagination))){
 			if(domain === zone.name || domain.endsWith(`.${zone.name}`)){
 				return zone;
 			}
@@ -236,7 +243,7 @@ class Challenge {
 	async getTxtRecords(zone, name){
 		const records = [];
 
-		for await(const txtRecord of consumePages(pagination => this.client.dnsRecords.browse(zone.id, {
+		for await(const txtRecord of consumePages(pagination => this.cfClient.dnsRecords.browse(zone.id, {
 			...pagination,
 			type: 'TXT',
 			name
