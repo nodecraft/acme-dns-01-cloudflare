@@ -61,15 +61,14 @@ class Challenge {
 		this.module = "acme-dns-01-cloudflare";
 		this.options = options;
 		this.cfClient = new cloudflare({
-			email: options.client?.email || options.email,
-			key: options.client?.key || options.key,
-			token: options.client?.token || options.token
+			email: options.client && options.client.email || options.email,
+			key: options.client && options.client.key || options.key,
+			token: options.client && options.client.token || options.token
 		});
 		this.client = {
-
-			email: options.client?.email || options.email,
-			key: options.client?.key || options.key,
-			token: options.client?.token || options.token
+			email: options.client && options.client.email || options.email,
+			key: options.client && options.client.key || options.key,
+			token: options.client && options.client.token || options.token
 		};
 		this.propagationDelay = options.propagationDelay || 15000; // set propagationDelay for ACME.js
 		if(this.options.verifyPropagation){

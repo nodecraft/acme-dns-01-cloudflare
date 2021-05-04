@@ -2,6 +2,9 @@
 	"extends": [
 		"nodecraft"
 	],
+	"parserOptions": {
+		"ecmaVersion": 2019
+	},
 	"plugins": [
 		"json",
 		"node"
