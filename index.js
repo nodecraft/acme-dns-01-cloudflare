@@ -24,7 +24,7 @@ async function* consumePages(loader, pageSize = 10){
 		try{
 			response = await loader({
 				per_page: pageSize,
-				page
+				page,
 			});
 		}catch(err){
 			// try to pass-through human-friendly Cloudflare API errors
@@ -63,12 +63,12 @@ class Challenge {
 		this.cfClient = new cloudflare({
 			email: options.client && options.client.email || options.email,
 			key: options.client && options.client.key || options.key,
-			token: options.client && options.client.token || options.token
+			token: options.client && options.client.token || options.token,
 		});
 		this.client = {
 			email: options.client && options.client.email || options.email,
 			key: options.client && options.client.key || options.key,
-			token: options.client && options.client.token || options.token
+			token: options.client && options.client.token || options.token,
 		};
 		this.propagationDelay = options.propagationDelay || 15000; // set propagationDelay for ACME.js
 		if(this.options.verifyPropagation){
@@ -100,7 +100,7 @@ class Challenge {
 				type: 'TXT',
 				name: fullRecordName,
 				content: args.challenge.dnsAuthorization,
-				ttl: 120
+				ttl: 120,
 			});
 			// verify propagation
 			if(this.options.verifyPropagation){
@@ -177,7 +177,7 @@ class Challenge {
 				return null;
 			}
 			return {
-				dnsAuthorization: foundRecord.content
+				dnsAuthorization: foundRecord.content,
 			};
 
 		}catch{
@@ -245,7 +245,7 @@ class Challenge {
 		for await(const txtRecord of consumePages(pagination => this.cfClient.dnsRecords.browse(zone.id, {
 			...pagination,
 			type: 'TXT',
-			name
+			name,
 		}))){
 			if(txtRecord.name === name){
 				records.push(txtRecord);

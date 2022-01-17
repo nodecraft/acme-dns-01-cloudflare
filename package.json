@@ -20,24 +20,24 @@
 	},
 	"license": "MIT",
 	"author": "Nodecraft, Inc.",
+	"main": "index.js",
 	"files": [
 		"index.js"
 	],
-	"main": "index.js",
 	"scripts": {
 		"lint": "eslint .",
 		"test": "npm run lint"
 	},
 	"dependencies": {
-		"cloudflare": "^2.7.0"
+		"cloudflare": "^2.9.1"
 	},
 	"devDependencies": {
+		"@nodecraft/eslint-config": "^15.0.0",
 		"acme-dns-01-test": "3.3.2",
-		"eslint": "^7.25.0",
-		"eslint-config-nodecraft": "^7.1.0",
-		"eslint-plugin-json": "^3.0.0",
+		"eslint": "^8.7.0",
+		"eslint-plugin-json": "^3.1.0",
 		"eslint-plugin-node": "^11.1.0",
-		"eslint-plugin-unicorn": "^38.0.0"
+		"eslint-plugin-unicorn": "^40.1.0"
 	},
 	"engines": {
 		"node": ">=12"

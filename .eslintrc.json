@@ -1,6 +1,6 @@
 {
 	"extends": [
-		"nodecraft"
+		"@nodecraft"
 	],
 	"parserOptions": {
 		"ecmaVersion": 2019
