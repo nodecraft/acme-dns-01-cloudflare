@@ -1,7 +1,7 @@
 'use strict';
 
-const {promisify} = require('util');
-const dns = require('dns');
+const {promisify} = require('node:util');
+const dns = require('node:dns');
 
 const resolveTxtPromise = promisify(dns.resolveTxt);
 
