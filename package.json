@@ -34,7 +34,7 @@
 	"devDependencies": {
 		"@nodecraft/eslint-config": "^19.1.0",
 		"acme-dns-01-test": "3.3.2",
-		"eslint": "^8.23.1",
+		"eslint": "^8.24.0",
 		"eslint-plugin-json": "^3.1.0",
 		"eslint-plugin-node": "^11.1.0",
 		"eslint-plugin-unicorn": "^43.0.2"
