@@ -19,9 +19,7 @@ From your [Cloudflare Profile page](https://dash.cloudflare.com/profile), create
 - Zone -> Zone: Read
 - Zone -> DNS: Edit
 
-Unfortunately at this time, there is no way to acquire the `com.cloudflare.api.account.zone.list` permission needed to list zones without giving the key `Zone: Read` access to all zones. Further discussion of this can be found [here](https://github.com/nodecraft/acme-dns-01-cloudflare/issues/8) and hopefully there'll be a better solution in the future.
-
-The resulting API token should look something like this:
+You can select specific zones or assign the token to all zones if preferred. The resulting API token should look something like this:
 
 
 ![Cloudflare API Token generation](https://up.jross.me/x2dcm)
