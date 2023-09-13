@@ -32,12 +32,12 @@
 		"cloudflare": "^2.9.1"
 	},
 	"devDependencies": {
-		"@nodecraft/eslint-config": "^23.0.2",
+		"@nodecraft/eslint-config": "^28.0.0",
 		"acme-dns-01-test": "3.3.2",
-		"eslint": "^8.35.0",
+		"eslint": "^8.49.0",
 		"eslint-plugin-json": "^3.1.0",
 		"eslint-plugin-node": "^11.1.0",
-		"eslint-plugin-unicorn": "^45.0.2"
+		"eslint-plugin-unicorn": "^48.0.1"
 	},
 	"engines": {
 		"node": ">=14"
