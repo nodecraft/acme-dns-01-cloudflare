@@ -2,8 +2,11 @@
 	"extends": [
 		"@nodecraft"
 	],
+	"rules": {
+		"@stylistic/no-mixed-operators": "off"
+	},
 	"parserOptions": {
-		"ecmaVersion": 2019
+		"ecmaVersion": 2020
 	},
 	"plugins": [
 		"json",
