@@ -29,7 +29,7 @@
 		"test": "npm run lint"
 	},
 	"dependencies": {
-		"cloudflare": "^2.9.1"
+		"cloudflare": "^3.5.0"
 	},
 	"devDependencies": {
 		"@nodecraft/eslint-config": "^32.1.0",
