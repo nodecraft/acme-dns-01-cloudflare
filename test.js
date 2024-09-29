@@ -1,6 +1,6 @@
 'use strict';
 
-/* eslint-disable no-process-exit */
+/* eslint-disable n/no-process-exit */
 if (!process.env.CLOUDFLARE_TOKEN && !(process.env.CLOUDFLARE_EMAIL && process.env.CLOUDFLARE_APIKEY)) {
 	console.error('Missing CLOUDFLARE_TOKEN or both CLOUDFLARE_EMAIL and CLOUDFLARE_APIKEY env');
 	process.exit(1);
