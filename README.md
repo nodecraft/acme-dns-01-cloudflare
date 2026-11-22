@@ -1,7 +1,7 @@
 acme-dns-01-cloudflare
 ==============
 [![npm version](https://badge.fury.io/js/acme-dns-01-cloudflare.svg)](https://badge.fury.io/js/acme-dns-01-cloudflare)
-[![Actions Status](https://github.com/nodecraft/acme-dns-01-cloudflare/workflows/Test/badge.svg)](https://github.com/nodecraft/acme-dns-01-cloudflare/actions)
+[![CI](https://github.com/nodecraft/acme-dns-01-cloudflare/actions/workflows/ci.yml/badge.svg)](https://github.com/nodecraft/acme-dns-01-cloudflare/actions/workflows/ci.yml)
 
 [Cloudflare](https://www.cloudflare.com/) DNS + Let's Encrypt. This module handles ACME dns-01 challenges, compatible with [Greenlock.js](https://www.npmjs.com/package/greenlock) and [ACME.js](https://www.npmjs.com/package/acme). It passes [acme-dns-01-test](https://www.npmjs.com/package/acme-dns-01-test).
 
@@ -9,6 +9,8 @@ acme-dns-01-cloudflare
 ```bash
 npm install acme-dns-01-cloudflare --save
 ```
+
+Requires Node.js 22.22.2+, 24.15.0+ or 26+. The package ships CommonJS, ES module and TypeScript builds.
 
 ## Cloudflare API Token
 
@@ -31,13 +33,17 @@ First, create an instance of the library with your Cloudflare API credentials or
 
 ```js
 const acmeDnsCloudflare = require('acme-dns-01-cloudflare');
+// or: import acmeDnsCloudflare from 'acme-dns-01-cloudflare';
 
 const cloudflareDns01 = new acmeDnsCloudflare({
 	token: 'xxxxxx',
 	verifyPropagation: true,
 	verbose: true // log propagation delays and other debug information
 });
-````
+```
+
+TypeScript types for the options are available on the default export, e.g. `acmeDnsCloudflare.ChallengeOptions`.
+
 Other options include `waitFor` and `retries` which control the number of propagation retries, and delay between retries. You probably won't need to tweak these unless you're seeing regular DNS related failures.
 
 Then you can use it with any compatible ACME library, such as [Greenlock.js](https://www.npmjs.com/package/greenlock) or [ACME.js](https://www.npmjs.com/package/acme).
@@ -124,6 +130,13 @@ greenlock.register({
 
 ## Tests
 ```bash
-# CLOUDFLARE_TOKEN or both CLOUDFLARE_EMAIL and CLOUDFLARE_APIKEY env vars must be set, as well as DOMAIN
-node ./test.js
+# unit tests against a mocked Cloudflare API and DNS resolver
+npm test
+
+# live test against a real zone; CLOUDFLARE_TOKEN or both CLOUDFLARE_EMAIL and CLOUDFLARE_APIKEY env vars must be set, as well as DOMAIN
+npm run test:live
 ```
+
+## Releases
+
+Releases are published automatically from `main` by [semantic-release](https://github.com/semantic-release/semantic-release) using [conventional commits](https://www.conventionalcommits.org/). See [GitHub Releases](https://github.com/nodecraft/acme-dns-01-cloudflare/releases) for release notes; [CHANGELOG.md](CHANGELOG.md) covers versions up to 1.2.5.

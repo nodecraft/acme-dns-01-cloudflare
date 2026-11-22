@@ -11,8 +11,10 @@ if (!process.env.DOMAIN) {
 }
 const tester = require('acme-dns-01-test');
 
+// Loaded by name at runtime, the way greenlock does, so lint doesn't depend on dist/ existing.
+const packageName = 'acme-dns-01-cloudflare';
 const type = 'dns-01';
-const challenger = require('./index.js').create({
+const challenger = require(packageName).create({
 	token: process.env.CLOUDFLARE_TOKEN,
 	email: process.env.CLOUDFLARE_EMAIL,
 	key: process.env.CLOUDFLARE_APIKEY,
