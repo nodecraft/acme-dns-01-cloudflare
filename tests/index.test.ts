@@ -51,6 +51,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	vi.useRealTimers();
 	vi.unstubAllGlobals();
 	vi.unstubAllEnvs();
 	vi.restoreAllMocks();
@@ -307,51 +308,16 @@ describe('remove', () => {
 		expect(err.cloudflare_errors).toEqual(errors);
 	});
 
-	describe('with verifyPropagation', () => {
-		it('waits until the record is gone from DNS using the configured waitFor and retries', async () => {
-			const resolveTxt = vi.spyOn(dns.promises, 'resolveTxt')
-				.mockResolvedValueOnce([['auth-value']])
-				.mockResolvedValueOnce([['another-challenge']]);
-			const challenger = Challenge.create({ token: TOKEN, verifyPropagation: true, waitFor: 1, retries: 2 });
-			await expect(challenger.remove(challengeFor('_acme-challenge', 'example.com'))).resolves.toBeNull();
-			expect(resolveTxt).toHaveBeenCalledTimes(2);
-		});
-
-		it.each([
-			['ENODATA', 'NODATA, the name still has other records'],
-			['ENOTFOUND', 'NXDOMAIN, the name no longer exists'],
-		])('treats %s (%s) as a completed removal', async (code) => {
-			vi.spyOn(dns.promises, 'resolveTxt').mockRejectedValue(dnsError(code));
-			const challenger = Challenge.create({ token: TOKEN, verifyPropagation: true, waitFor: 1 });
-			await expect(challenger.remove(challengeFor('_acme-challenge', 'example.com'))).resolves.toBeNull();
-			expect(dns.promises.resolveTxt).toHaveBeenCalledTimes(1);
-		});
-
-		// https://github.com/nodecraft/acme-dns-01-cloudflare/issues/17
-		it('does not report a failure when the deleted name returns NXDOMAIN', async () => {
-			vi.spyOn(dns.promises, 'resolveTxt').mockRejectedValue(dnsError('ENOTFOUND'));
-			const log = vi.spyOn(console, 'log').mockImplementation(() => {});
-			const challenger = Challenge.create({ token: TOKEN, verifyPropagation: true, verbose: true, waitFor: 1, retries: 5 });
-			await expect(challenger.remove(challengeFor('_acme-challenge', 'example.com'))).resolves.toBeNull();
-			expect(log).not.toHaveBeenCalled();
-		});
-
-		it('keeps retrying through transient DNS errors', async () => {
-			const resolveTxt = vi.spyOn(dns.promises, 'resolveTxt')
-				.mockRejectedValueOnce(dnsError('ETIMEOUT'))
-				.mockRejectedValueOnce(dnsError('ESERVFAIL'))
-				.mockResolvedValueOnce([['another-challenge']]);
-			const challenger = Challenge.create({ token: TOKEN, verifyPropagation: true, waitFor: 1, retries: 3 });
-			await expect(challenger.remove(challengeFor('_acme-challenge', 'example.com'))).resolves.toBeNull();
-			expect(resolveTxt).toHaveBeenCalledTimes(3);
-		});
-
-		it('rejects when the record never disappears', async () => {
-			vi.spyOn(dns.promises, 'resolveTxt').mockResolvedValue([['auth-value']]);
-			const challenger = Challenge.create({ token: TOKEN, verifyPropagation: true, waitFor: 1, retries: 2 });
-			await expect(challenger.remove(challengeFor('_acme-challenge', 'example.com'))).rejects.toThrow('Could not verify challenge for \'_acme-challenge.example.com\'.');
-			expect(dns.promises.resolveTxt).toHaveBeenCalledTimes(2);
-		});
+	// https://github.com/nodecraft/acme-dns-01-cloudflare/issues/9
+	it('resolves as soon as the record is deleted, without waiting on DNS, even with verifyPropagation', async () => {
+		vi.useFakeTimers();
+		const resolveTxt = vi.spyOn(dns.promises, 'resolveTxt').mockResolvedValue([['auth-value']]);
+		const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+		const challenger = Challenge.create({ token: TOKEN, verifyPropagation: true, verbose: true });
+		await expect(challenger.remove(challengeFor('_acme-challenge', 'example.com'))).resolves.toBeNull();
+		expect(api.state.records.map(record => record.id)).toEqual(['sibling', 'elsewhere']);
+		expect(resolveTxt).not.toHaveBeenCalled();
+		expect(log).not.toHaveBeenCalled();
 	});
 });
 
@@ -402,8 +368,40 @@ describe('verifyPropagation', () => {
 		await expect(Challenge.verifyPropagation({ dnsPrefix: '_acme-challenge', dnsZone: 'example.com', dnsAuthorization: 'auth-value' }, false, 1, 2)).resolves.toBeUndefined();
 	});
 
-	it('resolves for a removal once the value is absent', async () => {
-		vi.spyOn(dns.promises, 'resolveTxt').mockResolvedValue([['something-else']]);
-		await expect(Challenge.verifyPropagation({ dnsPrefix: '_acme-challenge', dnsZone: 'example.com', dnsAuthorization: 'auth-value', removed: true }, false, 1, 1)).resolves.toBeUndefined();
+	describe('for a removal', () => {
+		const removed = { dnsPrefix: '_acme-challenge', dnsZone: 'example.com', dnsAuthorization: 'auth-value', removed: true };
+
+		it('waits until the value is absent', async () => {
+			const resolveTxt = vi.spyOn(dns.promises, 'resolveTxt')
+				.mockResolvedValueOnce([['auth-value']])
+				.mockResolvedValueOnce([['something-else']]);
+			await expect(Challenge.verifyPropagation(removed, false, 1, 2)).resolves.toBeUndefined();
+			expect(resolveTxt).toHaveBeenCalledTimes(2);
+		});
+
+		// https://github.com/nodecraft/acme-dns-01-cloudflare/issues/17
+		it.each([
+			['ENODATA', 'NODATA, the name still has other records'],
+			['ENOTFOUND', 'NXDOMAIN, the name no longer exists'],
+		])('treats %s (%s) as removed', async (code) => {
+			vi.spyOn(dns.promises, 'resolveTxt').mockRejectedValue(dnsError(code));
+			await expect(Challenge.verifyPropagation(removed, false, 1, 5)).resolves.toBeUndefined();
+			expect(dns.promises.resolveTxt).toHaveBeenCalledTimes(1);
+		});
+
+		it('keeps retrying through transient DNS errors', async () => {
+			const resolveTxt = vi.spyOn(dns.promises, 'resolveTxt')
+				.mockRejectedValueOnce(dnsError('ETIMEOUT'))
+				.mockRejectedValueOnce(dnsError('ESERVFAIL'))
+				.mockResolvedValueOnce([['something-else']]);
+			await expect(Challenge.verifyPropagation(removed, false, 1, 3)).resolves.toBeUndefined();
+			expect(resolveTxt).toHaveBeenCalledTimes(3);
+		});
+
+		it('rejects when the value never disappears', async () => {
+			vi.spyOn(dns.promises, 'resolveTxt').mockResolvedValue([['auth-value']]);
+			await expect(Challenge.verifyPropagation(removed, false, 1, 2)).rejects.toThrow('Could not verify challenge for \'_acme-challenge.example.com\'.');
+			expect(dns.promises.resolveTxt).toHaveBeenCalledTimes(2);
+		});
 	});
 });

@@ -13,7 +13,7 @@ interface ChallengeOptions extends Credentials {
 	client?: Credentials;
 	/** Delay in ms ACME.js waits before validating. Ignored when `verifyPropagation` is set. */
 	propagationDelay?: number;
-	/** Query DNS until the record is visible before resolving `set` and `remove`. */
+	/** Query DNS until the new record is visible before resolving `set`. */
 	verifyPropagation?: boolean;
 	verbose?: boolean;
 	/** Delay in ms between propagation checks. */
@@ -202,15 +202,11 @@ class Challenge {
 			if (records.length === 0) {
 				throw new Error(`No TXT records found for ${fullRecordName}`);
 			}
+			// Deletion isn't verified in DNS: the certificate is already issued by now, and a stale value can't fail a later challenge (#9).
 			for (const record of records) {
 				if (record.content === challenge.dnsAuthorization) {
 					await this.cfClient.dns.records.delete(record.id, { zone_id: zone.id });
 				}
-			}
-			if (this.options.verifyPropagation) {
-				// wait for one "tick" before attempting to query. This can help prevent the DNS cache from getting polluted with a bad value
-				await delay(this.options.waitFor || 10000);
-				await Challenge.verifyPropagation({ ...challenge, removed: true }, this.options.verbose, this.options.waitFor, this.options.retries);
 			}
 			return null;
 		} catch (err) {

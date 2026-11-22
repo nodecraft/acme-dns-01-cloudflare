@@ -44,6 +44,8 @@ const cloudflareDns01 = new acmeDnsCloudflare({
 
 TypeScript types for the options are available on the default export, e.g. `acmeDnsCloudflare.ChallengeOptions`.
 
+With `verifyPropagation`, `set` waits until the new TXT record is visible in DNS before resolving. `remove` deletes the record and resolves straight away, since the certificate has already been issued by then.
+
 Other options include `waitFor` and `retries` which control the number of propagation retries, and delay between retries. You probably won't need to tweak these unless you're seeing regular DNS related failures.
 
 Then you can use it with any compatible ACME library, such as [Greenlock.js](https://www.npmjs.com/package/greenlock) or [ACME.js](https://www.npmjs.com/package/acme).
