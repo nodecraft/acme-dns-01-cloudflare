@@ -90,6 +90,12 @@ async function resolveTxt(fqdn: string): Promise<string[]> {
 	return records.map(record => record.join(''));
 }
 
+function isRecordAbsentError(err: unknown): boolean {
+	// Once a record is deleted, resolvers answer NODATA or NXDOMAIN depending on the zone, and both mean it's gone (#17).
+	const code = (err as NodeJS.ErrnoException).code;
+	return code === dns.NODATA || code === dns.NOTFOUND;
+}
+
 function delay(ms: number): Promise<void> {
 	return new Promise((resolve) => {
 		setTimeout(resolve, ms);
@@ -125,7 +131,7 @@ class Challenge {
 				}
 				return;
 			} catch (err) {
-				if ((err as NodeJS.ErrnoException).code === 'ENODATA' && challenge.removed === true) {
+				if (challenge.removed === true && isRecordAbsentError(err)) {
 					return;
 				}
 				if (verbose) {
