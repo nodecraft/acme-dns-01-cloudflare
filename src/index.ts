@@ -86,7 +86,8 @@ function createCloudflareClient({ email, key, token }: Credentials): Cloudflare 
 
 async function resolveTxt(fqdn: string): Promise<string[]> {
 	const records = await dns.promises.resolveTxt(fqdn);
-	return records.map(record => record.join(' '));
+	// a TXT record split into multiple strings represents one value concatenated without separators (RFC 7208 3.3)
+	return records.map(record => record.join(''));
 }
 
 function delay(ms: number): Promise<void> {
@@ -247,8 +248,13 @@ class Challenge {
 	}
 
 	async getZoneForDomain(domain: string): Promise<Zone | null> {
-		for await (const zone of this.cfClient.zones.list({ per_page: 50 })) {
-			if (domain === zone.name || domain.endsWith(`.${zone.name}`)) {
+		// Walk from the most specific name down so a subdomain zone wins over its parent; a bare TLD can't be a Cloudflare zone.
+		const labels = domain.split('.');
+		for (let i = 0; i < labels.length - 1; i++) {
+			const candidate = labels.slice(i).join('.');
+			const page = await this.cfClient.zones.list({ name: candidate });
+			const zone = page.result.find(result => result.name === candidate);
+			if (zone) {
 				return zone;
 			}
 		}

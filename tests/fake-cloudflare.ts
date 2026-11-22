@@ -94,7 +94,9 @@ export function createFakeCloudflare({ zones = [], records = [] }: Seed = {}) {
 
 		const path = url.pathname.replace(/^\/client\/v4/, '');
 		if (method === 'GET' && path === '/zones') {
-			return paginate(state.zones, url.searchParams);
+			const name = url.searchParams.get('name');
+			const zones = name ? state.zones.filter(zone => zone.name === name) : state.zones;
+			return paginate(zones, url.searchParams);
 		}
 
 		const recordsMatch = path.match(/^\/zones\/([^/]+)\/dns_records(?:\/([^/]+))?$/);

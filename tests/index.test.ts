@@ -166,12 +166,20 @@ describe('getZoneForDomain', () => {
 		await expect(Challenge.create({ token: TOKEN }).getZoneForDomain('testing-example.com')).resolves.toBeNull();
 	});
 
-	it('finds zones beyond the first page', async () => {
-		const zones = Array.from({ length: 75 }, (_, index) => {
+	it('prefers the most specific zone when a subdomain has its own zone', async () => {
+		useApi({ zones: [{ name: 'example.com' }, { name: 'sub.example.com' }] });
+		const challenger = Challenge.create({ token: TOKEN });
+		await expect(challenger.getZoneForDomain('_acme-challenge.www.sub.example.com')).resolves.toMatchObject({ name: 'sub.example.com' });
+		await expect(challenger.getZoneForDomain('_acme-challenge.www.example.com')).resolves.toMatchObject({ name: 'example.com' });
+	});
+
+	it('looks zones up by name rather than paging through the whole account', async () => {
+		const zones = Array.from({ length: 500 }, (_, index) => {
 			return { name: `zone${index}.example` };
 		});
 		useApi({ zones: [...zones, { name: 'example.com' }] });
 		await expect(Challenge.create({ token: TOKEN }).getZoneForDomain('www.example.com')).resolves.toMatchObject({ name: 'example.com' });
+		expect(api.state.requests.map(request => request.url.searchParams.get('name'))).toEqual(['www.example.com', 'example.com']);
 	});
 });
 
@@ -353,9 +361,9 @@ describe('get', () => {
 });
 
 describe('verifyPropagation', () => {
-	it('joins multi-string TXT records before comparing', async () => {
+	it('concatenates multi-string TXT records without separators before comparing', async () => {
 		vi.spyOn(dns.promises, 'resolveTxt').mockResolvedValue([['part1', 'part2']]);
-		await expect(Challenge.verifyPropagation({ dnsPrefix: '_acme-challenge', dnsZone: 'example.com', dnsAuthorization: 'part1 part2' }, false, 1, 1)).resolves.toBeUndefined();
+		await expect(Challenge.verifyPropagation({ dnsPrefix: '_acme-challenge', dnsZone: 'example.com', dnsAuthorization: 'part1part2' }, false, 1, 1)).resolves.toBeUndefined();
 	});
 
 	it('retries through DNS lookup errors', async () => {
