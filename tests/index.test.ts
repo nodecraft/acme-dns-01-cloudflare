@@ -29,8 +29,8 @@ async function rejectionOf(promise: Promise<unknown>): Promise<Failure> {
 	throw new Error('Expected the promise to reject');
 }
 
-function enodata() {
-	return Object.assign(new Error('queryTxt ENODATA'), { code: 'ENODATA' });
+function dnsError(code: string) {
+	return Object.assign(new Error(`queryTxt ${code}`), { code });
 }
 
 let api: FakeCloudflare;
@@ -238,7 +238,7 @@ describe('set', () => {
 	describe('with verifyPropagation', () => {
 		it('resolves once the record is visible in DNS', async () => {
 			const resolveTxt = vi.spyOn(dns.promises, 'resolveTxt')
-				.mockRejectedValueOnce(enodata())
+				.mockRejectedValueOnce(dnsError('ENODATA'))
 				.mockResolvedValueOnce([['other'], ['auth-value']]);
 			const log = vi.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -255,6 +255,13 @@ describe('set', () => {
 			const challenger = Challenge.create({ token: TOKEN, verifyPropagation: true, waitFor: 1, retries: 3 });
 			await expect(challenger.set(challengeFor('_acme-challenge', 'example.com'))).rejects.toThrow('Could not verify challenge for \'_acme-challenge.example.com\'.');
 			expect(dns.promises.resolveTxt).toHaveBeenCalledTimes(3);
+		});
+
+		it('treats NXDOMAIN as not yet propagated rather than success', async () => {
+			vi.spyOn(dns.promises, 'resolveTxt').mockRejectedValue(dnsError('ENOTFOUND'));
+			const challenger = Challenge.create({ token: TOKEN, verifyPropagation: true, waitFor: 1, retries: 2 });
+			await expect(challenger.set(challengeFor('_acme-challenge', 'example.com'))).rejects.toThrow('Could not verify challenge for \'_acme-challenge.example.com\'.');
+			expect(dns.promises.resolveTxt).toHaveBeenCalledTimes(2);
 		});
 	});
 });
@@ -310,11 +317,33 @@ describe('remove', () => {
 			expect(resolveTxt).toHaveBeenCalledTimes(2);
 		});
 
-		it('treats ENODATA as a completed removal', async () => {
-			vi.spyOn(dns.promises, 'resolveTxt').mockRejectedValue(enodata());
+		it.each([
+			['ENODATA', 'NODATA, the name still has other records'],
+			['ENOTFOUND', 'NXDOMAIN, the name no longer exists'],
+		])('treats %s (%s) as a completed removal', async (code) => {
+			vi.spyOn(dns.promises, 'resolveTxt').mockRejectedValue(dnsError(code));
 			const challenger = Challenge.create({ token: TOKEN, verifyPropagation: true, waitFor: 1 });
 			await expect(challenger.remove(challengeFor('_acme-challenge', 'example.com'))).resolves.toBeNull();
 			expect(dns.promises.resolveTxt).toHaveBeenCalledTimes(1);
+		});
+
+		// https://github.com/nodecraft/acme-dns-01-cloudflare/issues/17
+		it('does not report a failure when the deleted name returns NXDOMAIN', async () => {
+			vi.spyOn(dns.promises, 'resolveTxt').mockRejectedValue(dnsError('ENOTFOUND'));
+			const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+			const challenger = Challenge.create({ token: TOKEN, verifyPropagation: true, verbose: true, waitFor: 1, retries: 5 });
+			await expect(challenger.remove(challengeFor('_acme-challenge', 'example.com'))).resolves.toBeNull();
+			expect(log).not.toHaveBeenCalled();
+		});
+
+		it('keeps retrying through transient DNS errors', async () => {
+			const resolveTxt = vi.spyOn(dns.promises, 'resolveTxt')
+				.mockRejectedValueOnce(dnsError('ETIMEOUT'))
+				.mockRejectedValueOnce(dnsError('ESERVFAIL'))
+				.mockResolvedValueOnce([['another-challenge']]);
+			const challenger = Challenge.create({ token: TOKEN, verifyPropagation: true, waitFor: 1, retries: 3 });
+			await expect(challenger.remove(challengeFor('_acme-challenge', 'example.com'))).resolves.toBeNull();
+			expect(resolveTxt).toHaveBeenCalledTimes(3);
 		});
 
 		it('rejects when the record never disappears', async () => {
