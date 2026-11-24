@@ -55,7 +55,7 @@
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.5",
 		"@nodecraft/eslint-config": "^54.0.0",
-		"@stylistic/eslint-plugin": "^5.10.0",
+		"@stylistic/eslint-plugin": "^6.0.1",
 		"@types/node": "^26.6.6",
 		"@vitest/coverage-v8": "^5.1.0",
 		"@vitest/eslint-plugin": "^1.6.28",
@@ -65,11 +65,11 @@
 		"eslint-plugin-import-x": "^4.18.1",
 		"eslint-plugin-n": "^18.5.0",
 		"eslint-plugin-regexp": "^3.3.3",
-		"eslint-plugin-unicorn": "^79.0.0",
+		"eslint-plugin-unicorn": "^80.0.0",
 		"publint": "^0.3.25",
-		"semantic-release": "^25.0.9",
+		"semantic-release": "^26.0.1",
 		"tsdown": "^0.23.7",
-		"typescript": "^6.0.3",
+		"typescript": "^7.0.2",
 		"typescript-eslint": "^8.72.2",
 		"vitest": "^5.1.0"
 	}
